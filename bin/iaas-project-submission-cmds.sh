@@ -383,94 +383,50 @@ if [ ! -z ${clues[ssdVolumeQuota]} ]
   echo $cmd
 fi
 
-# Set increased cores and ram if specified sHPC quota are larger than base quota TODO: handle option 'Other (specify below)'
+# Set increased cores and ram if specified sHPC quota are larger than base quota
 if [ ! -z "${clues[projectShpcQuota]}" ]
 then
   if [[ ${clues[projectShpcQuota]} == 'Small: 8 CPUs, 32 GB memory' ]]
   then
-    # Cores
-    if [ 8 -gt ${pquotas[cores]} ]
-    then
-      pquotas[cores]=8
-      cmd="openstack quota set --cores ${pquotas[cores]}"
-      echo $cmd
-    fi
-    # RAM
-    ram=$((1024*32))
-    if [ $ram -gt ${pquotas[ram]} ]
-    then
-      pquotas[ram]=$ram
-      cmd="openstack quota set --ram ${pquotas[ram]}"
-      echo $cmd
-    fi
+    shpcCores=8
+    shpcRamGB=32
   elif [[ ${clues[projectShpcQuota]} == 'Medium: 16 CPUs, 64 GB memory' ]]
   then
-    # Cores
-    if [ 16 -gt ${pquotas[cores]} ]
-    then
-      pquotas[cores]=16
-      cmd="openstack quota set --cores ${pquotas[cores]}"
-      echo $cmd
-    fi
-    # RAM
-    ram=$((1024*64))
-    if [ $ram -gt ${pquotas[ram]} ]
-    then
-      pquotas[ram]=$ram
-      cmd="openstack quota set --ram ${pquotas[ram]}"
-      echo $cmd
-    fi
+    shpcCores=16
+    shpcRamGB=64
   elif [[ ${clues[projectShpcQuota]} == 'Large: 32 CPUs, 128 GB memory' ]]
   then
-    # Cores
-    if [ 32 -gt ${pquotas[cores]} ]
-    then
-      pquotas[cores]=32
-      cmd="openstack quota set --cores ${pquotas[cores]}"
-      echo $cmd
-    fi
-    # RAM
-    ram=$((1024*128))
-    if [ $ram -gt ${pquotas[ram]} ]
-    then
-      pquotas[ram]=$ram
-      cmd="openstack quota set --ram ${pquotas[ram]}"
-      echo $cmd
-    fi
+    shpcCores=32
+    shpcRamGB=128
   elif [[ ${clues[projectShpcQuota]} == 'Extra Large: 64 CPUs, 256 GB memory' ]]
   then
-    # Cores
-    if [ 64 -gt ${pquotas[cores]} ]
-    then
-      pquotas[cores]=64
-      cmd="openstack quota set --cores ${pquotas[cores]}"
-      echo $cmd
-    fi
-    # RAM
-    ram=$((1024*256))
-    if [ $ram -gt ${pquotas[ram]} ]
-    then
-      pquotas[ram]=$ram
-      cmd="openstack quota set --ram ${pquotas[ram]}"
-      echo $cmd
-    fi
+    shpcCores=64
+    shpcRamGB=256
   elif [[ ${clues[projectShpcQuota]} == 'Big Memory: 64 CPUs, 384 GB memory' ]]
   then
-    # Cores
-    if [ 64 -gt ${pquotas[cores]} ]
-    then
-      pquotas[cores]=64
-      cmd="openstack quota set --cores ${pquotas[cores]}"
-      echo $cmd
-    fi
-    # RAM
-    ram=$((1024*384))
-    if [ $ram -gt ${pquotas[ram]} ]
-    then
-      pquotas[ram]=$ram
-      cmd="openstack quota set --ram ${pquotas[ram]}"
-      echo $cmd
-    fi
+    shpcCores=64
+    shpcRamGB=384
+  elif [[ ${clues[projectShpcQuota]} == 'Other (specify below)' ]]
+  then
+    # TODO: Instead read from the Other field (not parsed)
+    read -p "shpcCores: " shpcCores
+    read -p "shpcRamGB: " shpcRamGB
+  fi
+  # Increase cores and RAM if necessary
+  # Cores
+  if [ $shpcCores -gt ${pquotas[cores]} ]
+  then
+    pquotas[cores]=$shpcCores
+    cmd="openstack quota set --cores ${pquotas[cores]}"
+    echo $cmd
+  fi
+  # RAM
+  ram=$((1024*$shpcRamGB))
+  if [ $ram -gt ${pquotas[ram]} ]
+  then
+    pquotas[ram]=$ram
+    cmd="openstack quota set --ram ${pquotas[ram]}"
+    echo $cmd
   fi
 fi
 echo
