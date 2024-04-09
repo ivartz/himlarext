@@ -300,7 +300,8 @@ then
   cmd="./project.py create-private --end ${pcargs[end]} -q ${pcargs[quota]} --rt ${pcargs[rt]} -m ${pcargs[admin]}"
 elif [[ ${pcargs[createArgument]} == create ]]
 then
-  cmd="./project.py create --region ${pcargs[region]} --end ${pcargs[end]} -a ${pcargs[admin]} -t ${pcargs[pctype]} --desc ${pcargs[desc]} -o ${pcargs[org]} --contact ${pcargs[contact]} -q ${pcargs[quota]} --rt ${pcargs[rt]} -m ${pcargs[project]}"
+  #cmd="./project.py create --region ${pcargs[region]} --end ${pcargs[end]} -a ${pcargs[admin]} -t ${pcargs[pctype]} --desc ${pcargs[desc]} -o ${pcargs[org]} --contact ${pcargs[contact]} -q ${pcargs[quota]} --rt ${pcargs[rt]} -m ${pcargs[project]}"
+  cmd="./project.py create --end ${pcargs[end]} -a ${pcargs[admin]} -t ${pcargs[pctype]} --desc ${pcargs[desc]} -o ${pcargs[org]} --contact ${pcargs[contact]} -q ${pcargs[quota]} --rt ${pcargs[rt]} -m ${pcargs[project]}"
 fi
 
 echo $cmd
