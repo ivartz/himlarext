@@ -306,14 +306,17 @@ fi
 
 echo $cmd
 
-# Additional users
+# Build project.py grant cmd -u arguments
 if [ ! -z ${clues[additionalUsers]} ]
 then
-  # Build project.py grant cmd -u arguments
   pguserargs=$(bash -c 'users=(${0//\\r\\n/ }); for u in ${users[*]}; do echo -n "-u $u "; done' ${clues[additionalUsers]})
+  pguserargs="-u ${pcargs[admin]} $pguserargs"
 
   # Parse full project.py grant cmd
   cmd="./project.py grant $pguserargs --rt ${pcargs[rt]} -m ${pcargs[project]}"
+  echo $cmd
+else
+  cmd="./project.py grant -u ${pcargs[admin]} --rt ${pcargs[rt]} -m ${pcargs[project]}"
   echo $cmd
 fi
 
