@@ -307,17 +307,20 @@ fi
 echo $cmd
 
 # Build project.py grant cmd -u arguments
-if [ ! -z ${clues[additionalUsers]} ]
+if [[ ${pcargs[createArgument]} != create-private ]]
 then
-  pguserargs=$(bash -c 'users=(${0//\\r\\n/ }); for u in ${users[*]}; do echo -n "-u $u "; done' ${clues[additionalUsers]})
-  pguserargs="-u ${pcargs[admin]} $pguserargs"
+  if [ ! -z ${clues[additionalUsers]} ]
+  then
+    pguserargs=$(bash -c 'users=(${0//\\r\\n/ }); for u in ${users[*]}; do echo -n "-u $u "; done' ${clues[additionalUsers]})
+    pguserargs="-u ${pcargs[admin]} $pguserargs"
 
-  # Parse full project.py grant cmd
-  cmd="./project.py grant $pguserargs --rt ${pcargs[rt]} -m ${pcargs[project]}"
-  echo $cmd
-else
-  cmd="./project.py grant -u ${pcargs[admin]} --rt ${pcargs[rt]} -m ${pcargs[project]}"
-  echo $cmd
+    # Parse full project.py grant cmd
+    cmd="./project.py grant $pguserargs --rt ${pcargs[rt]} -m ${pcargs[project]}"
+    echo $cmd
+  else
+    cmd="./project.py grant -u ${pcargs[admin]} --rt ${pcargs[rt]} -m ${pcargs[project]}"
+    echo $cmd
+  fi
 fi
 
 # Project access grants (choose from 'vgpu', 'shpc', 'shpc_ram', 'shpc_disk1', 'shpc_disk2', 'shpc_disk3', 'shpc_disk4', 'ssd', 'net_uib', 'net_educloud') TODO: add logic for: 'net_uib', 'net_educloud
