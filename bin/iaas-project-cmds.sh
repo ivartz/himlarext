@@ -9,6 +9,13 @@ export NETTSKJEMA_API_SUBMISSIONS_TOKEN=TOKEN
 '
 
 fromSubmissionId=$1
+
+if [ -z $NETTSKJEMA_API_SUBMISSIONS_TOKEN ]
+then
+  echo "NETSKJEMA_API_SUBMISSIONS_TOKEN environmental variable not present, exiting"
+  exit
+fi
+
 submissionIds=($(bash $(dirname $0)/iaas-project-submission-ids.sh $(($fromSubmissionId-1))))
 
 numSubmissions=${#submissionIds[*]}
