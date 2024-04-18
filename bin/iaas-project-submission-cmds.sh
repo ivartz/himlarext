@@ -99,7 +99,7 @@ do
   then
     clues[projectShpcQuota]=$(echo $answer | jq '.answerOptions[0].text' | tr -d '"')
   # Regular volume quota for shared projects
-  elif [[ $questionId == 5520777 ]]
+  elif [[ $questionId == 5520777 ]] || [[ $questionId == 5520813 ]]
   then
     clues[regularVolumeQuota]=$(echo $answer | jq '.textAnswer' | tr -d '"')
   # SSD volume quota for shared projects
@@ -294,6 +294,10 @@ pcargs[desc]="'${clues[projectDescription]}'"
 # project (create)
 pcargs[project]=${clues[projectName]}
 
+# ---------------------------
+#        himlarcli
+# ---------------------------
+
 # Parse full project.py cmd
 if [[ ${pcargs[createArgument]} == create-private ]]
 then
@@ -375,6 +379,10 @@ then
     echo $cmd
   done
 fi
+
+# ---------------------------
+#        openstack cli
+# ---------------------------
 
 # Set custom HDD and SSD volume quotas
 if [ ! -z ${clues[regularVolumeQuota]} ]
