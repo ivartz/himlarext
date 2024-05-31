@@ -354,6 +354,12 @@ then
     otherShpcResource=${otherShpcResourcesArray[$j]}
     otherShpcResource=${otherShpcResource##*\(}
     otherShpcResource=${otherShpcResource%%\)*}
+    # Oppdatering 2024-05-31: Oppfordring fra Trond
+    # om at det er lurt å gi tilganger opp til
+    # forespurte kapasitet, for shpc_disk*
+    # Dermed har brukeren mulighet til å også
+    # velge en flavor med mindre kapasitet,
+    # dersom det viser seg bedre egnet.
     if [[ $otherShpcResource == 'shpc.r1a' ]]
     then
       cmd="./project.py access --region ${pcargs[region]} --grant shpc_ram ${pcargs[project]}"
@@ -364,19 +370,33 @@ then
       echo $cmd
     elif [[ $otherShpcResource == 'shpc.m1ad2' ]]
     then
+      cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk1 ${pcargs[project]}"
+      echo $cmd
       cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk2 ${pcargs[project]}"
       echo $cmd
     elif [[ $otherShpcResource == 'shpc.m1ad3' ]]
     then
+      cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk1 ${pcargs[project]}"
+      echo $cmd
+      cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk2 ${pcargs[project]}"
+      echo $cmd
       cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk3 ${pcargs[project]}"
       echo $cmd
     elif [[ $otherShpcResource == 'shpc.m1ad4' ]]
     then
+      cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk1 ${pcargs[project]}"
+      echo $cmd
+      cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk2 ${pcargs[project]}"
+      echo $cmd
+      cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk3 ${pcargs[project]}"
+      echo $cmd
       cmd="./project.py access --region ${pcargs[region]} --grant shpc_disk4 ${pcargs[project]}"
       echo $cmd
     fi
-    cmd="./flavor.py grant --region ${pcargs[region]} $otherShpcResource ${pcargs[project]}"
-    echo $cmd
+    # Oppdatering 2024-05-31: Oppfordring fra Trond:
+    # Det er ikke nødvendig å gjøre dette etter bruken av project.py access --grant over
+    #cmd="./flavor.py grant --region ${pcargs[region]} $otherShpcResource ${pcargs[project]}"
+    #echo $cmd
   done
 fi
 
