@@ -414,6 +414,7 @@ fi
 if [ ! -z ${clues[ssdVolumeQuota]} ]
   then
   # Parse full openstack SSD quota set cmd
+  cmd="openstack quota set --gigabytes $((${clues[regularVolumeQuota]}+${clues[ssdVolumeQuota]})) ${pcargs[project]}"
   cmd="openstack quota set --volume-type mass-storage-ssd --gigabytes ${clues[ssdVolumeQuota]} ${pcargs[project]}"
   echo $cmd
 fi
