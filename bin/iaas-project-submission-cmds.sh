@@ -414,7 +414,7 @@ fi
 if [ ! -z ${clues[ssdVolumeQuota]} ]
   then
   # Parse full openstack SSD quota set cmd
-  cmd="openstack quota set --gigabytes $((${clues[regularVolumeQuota]}+${clues[ssdVolumeQuota]})) ${pcargs[project]}" # TODO: Test if this is required
+  cmd="openstack quota set --gigabytes $((${clues[regularVolumeQuota]}+${clues[ssdVolumeQuota]})) ${pcargs[project]}" # @caleno verified that this necessary: When setting SSD quota, the regular quota needs to be increase as well with the same amount as the SSD quota.
   cmd="openstack quota set --volume-type mass-storage-ssd --gigabytes ${clues[ssdVolumeQuota]} ${pcargs[project]}"
   echo $cmd
 fi
