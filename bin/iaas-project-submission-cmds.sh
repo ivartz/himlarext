@@ -99,7 +99,7 @@ do
   then
     clues[projectShpcQuota]=$(echo $answer | jq '.answerOptions[0].text' | tr -d '"')
   # Regular volume quota for shared projects
-  elif [[ $questionId == 5520777 ]] || [[ $questionId == 5520813 ]]
+  elif [[ $questionId == 5520777 ]] || [[ $questionId == 5520813 ]] || [[ $questionId == 6814979 ]]
   then
     clues[regularVolumeQuota]=$(echo $answer | jq '.textAnswer' | tr -d '"')
   # SSD volume quota for shared projects
