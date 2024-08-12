@@ -347,6 +347,8 @@ fi
 
 # Access to other possible sHPC flavors specified in the form: shpc.r1a, shpc.m1ad1, shpc.m1ad2, shpc.m1ad3, shpc.m1ad4
 # .. and required resources: 'shpc_ram', 'shpc_disk1', 'shpc_disk2', 'shpc_disk3', 'shpc_disk4'
+# 2024-08-12: To see explanation, you can look on the print from:
+# ./project.py access --show-args iaas-team
 if [ ${#otherShpcResourcesArray} -gt 0 ]
 then
   for ((j=0; j<$numOtherShpcResources; ++j))
@@ -414,7 +416,7 @@ fi
 if [ ! -z ${clues[ssdVolumeQuota]} ]
   then
   # Parse full openstack SSD quota set cmd
-  cmd="openstack quota set --gigabytes $((${clues[regularVolumeQuota]}+${clues[ssdVolumeQuota]})) ${pcargs[project]}" # @caleno verified that this necessary: When setting SSD quota, the regular quota needs to be increase as well with the same amount as the SSD quota.
+  cmd="openstack quota set --gigabytes $((${clues[regularVolumeQuota]}+${clues[ssdVolumeQuota]})) ${pcargs[project]}" # @caleno verified that this necessary: When setting SSD quota, the regular quota needs to be increased as well with the same amount as the SSD quota.
   cmd="openstack quota set --volume-type mass-storage-ssd --gigabytes ${clues[ssdVolumeQuota]} ${pcargs[project]}"
   echo $cmd
 fi
