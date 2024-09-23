@@ -6,7 +6,7 @@ https://nettskjema.no/a/iaas-project (request.nrec.no)
 
 2024-04-06 yyyy-mm-dd
 
-export NETTSKJEMA_API_SUBMISSIONS_TOKEN=TOKEN
+export NETTSKJEMA_API_ACCESS_TOKEN=TOKEN
 
 Tested on RT SUBMISSION_ID Summary
 
@@ -23,21 +23,14 @@ Tested on RT SUBMISSION_ID Summary
 6152144 31136133
 6147307 31095286
 and more
-
 '
 
 set -e
 
 RT=$1
-#RT=6152187
-
 SUBMISSION_ID=$2
-#SUBMISSION_ID=31136398
-
-data=$(curl -s "https://nettskjema.no/api/v2/submissions/${SUBMISSION_ID}" -i -X GET -H "Authorization: Bearer ${NETTSKJEMA_API_SUBMISSIONS_TOKEN}" | sed -n 20p)
-
-#curl "https://nettskjema.no/api/v2/submissions/${SUBMISSION_ID}" -i -X GET -H "Authorization: Bearer ${NETTSKJEMA_API_SUBMISSIONS_TOKEN}" | sed -n 20p > $SUBMISSION_ID
-#data=$(cat $SUBMISSION_ID)
+element_data=$3
+answer_data=$(curl -s -H "Authorization: Bearer ${NETTSKJEMA_API_ACCESS_TOKEN}" -X GET https://api.nettskjema.no/v3/form/submission/${SUBMISSION_ID})
 
 echo
 
@@ -45,26 +38,37 @@ declare -A clues
 
 clues[rt]=$RT
 clues[submissionId]=$SUBMISSION_ID
-clues[respondentEmail]=$(echo $data | jq '.respondentEmail' | tr -d '"')
+clues[respondentEmail]=$(echo $answer_data | jq '.submissionMetadata.respondentEmail' | tr -d '"')
 
-numAnswers=$(echo $data | jq '.answers | length')
-
+numAnswers=$(echo $answer_data | jq '.formAnswers | length')
 for ((i=0; i<$numAnswers; ++i))
 do
-  answer=$(echo $data | jq ".answers[$i]")
-  questionId=$(echo $answer | jq '.questionId')
-  # Project Type
-  if [[ $questionId == 4953372 ]]
+  answer=$(echo $answer_data | jq ".formAnswers[$i]")
+  elementId=$(echo $answer | jq '.elementId') 
+  answer_elements=$(echo $element_data | jq '.[]' | jq "select(.elementId==$elementId)")
+  answerOptionIds=($(echo $answer | jq '.answerOptionIds' | tr -d '[' | tr -d ']' | tr -d ' ' | tr ',' ' '))
+  if [ ${#answerOptionIds[*]} -eq 0 ]
   then
-    clues[projectType]=$(echo $answer | jq '.answerOptions[0].text' | tr -d '"')
-  # Special resources
-  elif [[ $questionId == 5520806 ]]
+    answer_text=$(echo $answer | jq '.textAnswer' | tr -d '"')
+  elif [ ${#answerOptionIds[*]} -eq 1 ]
   then
-    specialResources=$(echo $answer | jq '.answerOptions')
-    numSpecialResources=$(echo $answer | jq '.answerOptions | length')
-    for ((j=0; j<$numSpecialResources; ++j))
+    answer_text=$(echo $answer_elements | jq '.answerOptions[]' | jq "select(.answerOptionId==${answerOptionIds[0]}).text" | tr -d '"')
+  else
+    answer_texts=()
+    for answerOptionId in ${answerOptionIds[*]}
     do
-      specialResource=$(echo $specialResources | jq ".[$j].text" | tr -d '"')
+      answer_texts+=("$(echo $answer_elements | jq '.answerOptions[]' | jq "select(.answerOptionId==$answerOptionId).text" | tr -d '"')")
+    done
+  fi
+  # Project Type
+  if [[ $elementId == 4559698 ]]
+  then
+    clues[projectType]=$answer_text
+  # Special resources
+  elif [[ $elementId == 5052840 ]]
+  then
+    for specialResource in "${answer_texts[@]}"
+    do
       if [[ $specialResource == 'Shared HPC' ]]
       then
         clues[shpcResource]=$specialResource
@@ -74,68 +78,64 @@ do
       fi
     done
   # Private project base quota
-  elif [[ $questionId == 4953376 ]]
-	then
-    clues[personalProjectBaseQuota]=$(echo $answer | jq '.answerOptions[0].text' | tr -d '"')
-  # Shared project base quota
-  elif [[ $questionId == 4953375 ]]
+  elif [[ $elementId == 4559704 ]]
   then
-    clues[sharedProjectBaseQuota]=$(echo $answer | jq '.answerOptions[0].text' | tr -d '"')
+    clues[personalProjectBaseQuota]=$answer_text
+  # Shared project base quota
+  elif [[ $elementId == 4559703 ]]
+  then
+    clues[sharedProjectBaseQuota]=$answer_text
   # Other sHPC flavors
   otherShpcResourcesArray=()
-  numOtherShpcResources=0
-  elif [[ $questionId == 5520068 ]]
+  elif [[ $elementId == 5051926 ]]
   then
-    otherShpcResources=$(echo $answer | jq '.answerOptions')
-    numOtherShpcResources=$(echo $answer | jq '.answerOptions | length')
-    for ((j=0; j<$numOtherShpcResources; ++j))
+    for otherShpcResource in "${answer_texts[@]}"
     do
-      otherShpcResource=$(echo $otherShpcResources | jq ".[$j].text" | tr -d '"')
       otherShpcResourcesArray+=("$otherShpcResource")
     done
   # (if needed) Additional project sHPC quota TODO: users think that base quota is part of this, and we can end up giving more resources than needed. Change to "Extended HPC Quota?"
   # In this script: Total project quota is the largest of base quota and sHPC quota.
-  elif [[ $questionId == 5520772 ]]
+  elif [[ $elementId == 5052831 ]]
   then
-    clues[projectShpcQuota]=$(echo $answer | jq '.answerOptions[0].text' | tr -d '"')
+    clues[projectShpcQuota]=$answer_text
   # Regular volume quota for shared projects
-  elif [[ $questionId == 5520777 ]] || [[ $questionId == 5520813 ]] || [[ $questionId == 6814979 ]]
+  elif [[ $elementId == 5052835 ]] || [[ $elementId == 5052848 ]] || [[ $elementId == 6148367 ]]
   then
-    clues[regularVolumeQuota]=$(echo $answer | jq '.textAnswer' | tr -d '"')
+    clues[regularVolumeQuota]=$answer_text
   # SSD volume quota for shared projects
-  elif [[ $questionId == 5520812 ]]
+  elif [[ $elementId == 5052847 ]]
   then
-    clues[ssdVolumeQuota]=$(echo $answer | jq '.textAnswer' | tr -d '"')
+    clues[ssdVolumeQuota]=$answer_text
   # Regular volume quota for vgpu projects
-  elif [[ $questionId == 5520814 ]]
+  elif [[ $elementId == 5052849 ]]
   then
-    clues[regularVolumeQuota]=$(echo $answer | jq '.textAnswer' | tr -d '"')
+    clues[regularVolumeQuota]=$answer_text
   # Optional contact
-  # TODO: add
+  # TODO
   # Project name
-  elif [[ $questionId == 4953385 ]]
+  elif [[ $elementId == 4559713 ]]
   then
-    clues[projectName]=$(echo $answer | jq '.textAnswer' | tr -d '"')
+    clues[projectName]=$answer_text
   # Project description
-  elif [[ $questionId == 4953382 ]]
+  elif [[ $elementId == 4559710 ]]
   then
-    clues[projectDescription]=$(echo $answer | jq '.textAnswer' | tr -d '"')
+    clues[projectDescription]=$answer_text
   # Expiration date
-  elif [[ $questionId == 4953374 ]]
+  elif [[ $elementId == 4559702 ]]
   then
-    clues[expirationDate]=$(echo $answer | jq '.textAnswer' | tr -d '"')
+    clues[expirationDate]=$answer_text
   # Educational institution
-  elif [[ $questionId == 4953383 ]]
+  elif [[ $elementId == 4559711 ]]
   then
-    clues[educationalInstitution]=$(echo $answer | jq '.answerOptions[0].text' | tr -d '"')
+    clues[educationalInstitution]=$answer_text
   # Project category
-  elif [[ $questionId == 4953384 ]]
+  elif [[ $elementId == 4559712 ]]
   then
-    clues[projectCategory]=$(echo $answer | jq '.answerOptions[0].text' | tr -d '"')
+    clues[projectCategory]=$answer_text
   # Additional users
-  elif [[ $questionId == 4953386 ]]
+  elif [[ $elementId == 4559714 ]]
   then
-    clues[additionalUsers]=$(echo $answer | jq '.textAnswer' | tr -d '"')
+    clues[additionalUsers]=$answer_text
   # Other
   # TODO: add
   fi
@@ -160,18 +160,18 @@ echo
 # Interactive if not Personal project
 if [[ ${clues[projectType]} != 'Personal' ]]
 then
-	# project
-	read -e -p "projectName (Enter to continue): " -i "${clues[projectName]}" kanswer
-	clues[projectName]=$kanswer
+  # project
+  read -e -p "projectName (Enter to continue): " -i "${clues[projectName]}" kanswer
+  clues[projectName]=$kanswer
 
-	# description
-	# Take the first sentence in projectDescription, as a start
-	desc="${clues[projectDescription]}"
-	desc="${desc%%.*}"
-	read -e -p "projectDescription, first sentence (Enter to continue): " -i "$desc" kanswer
-	clues[projectDescription]="$kanswer"
+  # description
+  # Take the first sentence in projectDescription, as a start
+  desc="${clues[projectDescription]}"
+  desc="${desc%%.*}"
+  read -e -p "projectDescription, first sentence (Enter to continue): " -i "$desc" kanswer
+  clues[projectDescription]="$kanswer"
 
-	echo
+  echo
 fi
 
 # Start building cmds
@@ -198,14 +198,14 @@ then
 # small, medium in the context of Personal project
 elif [[ ${clues[projectType]} == 'Personal' ]]
 then
-	pcargs[createArgument]=create-private
+  pcargs[createArgument]=create-private
   if [[ ${clues[personalProjectBaseQuota]} == 'Small: 5 instances, 10 cores and 16 GB RAM' ]]
   then
     pcargs[quota]=small
   elif [[ ${clues[personalProjectBaseQuota]} == 'Medium: 20 instances, 40 cores and 64 GB RAM' ]]
   then
     pcargs[quota]=medium
-	fi
+  fi
 # small, medium, large in the context of Shared project
 elif [[ ${clues[projectType]} == 'Shared' ]]
 then
