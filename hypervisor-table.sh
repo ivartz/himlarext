@@ -92,7 +92,7 @@ do
   resource_provider=${resource_providers[$i]}
   uuid=$(echo $resource_provider | cut -d ' ' -f 1)
 
-  nohup openstack resource provider usage show $uuid -f value > nohup_$(printf %02d $(($i+1))).stdout 2> /dev/null &
+  nohup openstack resource provider usage show $uuid -f value > nohup_$(printf %03d $(($i+1))).stdout 2> /dev/null &
   pids[$i]=$!
 
   # Prevent parallel execution
@@ -110,7 +110,7 @@ do
   pid=${pids[$i]}
   wait $pid
   name=$(echo $resource_provider | cut -d ' ' -f 2)
-  results_file=nohup_$(printf %02d $(($i+1))).stdout
+  results_file=nohup_$(printf %03d $(($i+1))).stdout
   usage_reports[$name]=$results_file
 done
 
