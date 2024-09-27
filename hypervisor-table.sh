@@ -115,15 +115,15 @@ do
 done
 
 # Print header
-columns=('NAME' 'AGGREGATES' 'VMs' 'vCPUs' 'MEMORY (GiB)' 'DISK (GB)' 'STATE' 'STATUS')
+columns=('NAME' 'AGGREGATES' 'VMs' 'vCPUs' 'vGPUs' 'MEMORY (GiB)' 'DISK (GB)' 'STATE' 'STATUS')
 resource_strs=(${!usage_reports[*]})
 # -> Pick the longest resource string in order to align header correctly
 resource_longest_str=''
-for str in "${resource_strs[@]}"
+for s in "${resource_strs[@]}"
 do
-  if [ ${#str} -gt ${#resource_longest_str} ]
+  if [ ${#s} -gt ${#resource_longest_str} ]
   then
-    resource_longest_str="$str"
+    resource_longest_str="$s"
   fi
 done
 name_str=${columns[0]}
@@ -152,14 +152,34 @@ do
     elif [[ $column == 'vCPUs' ]]
     then
       VCPU=$(cat $value | grep VCPU | cut -d ' ' -f 2)
+      if [ -z $VCPU ]
+      then
+        VCPU='-'
+      fi
       n=$((${#column}-${#VCPU}))
       printf '%s' $VCPU
+      printf '%*s' $n
+      printf '\t'
+    elif [[ $column == 'vGPUs' ]]
+    then
+      VGPU=$(cat $value | grep VGPU | cut -d ' ' -f 2)
+      if [ -z $VGPU ]
+      then
+        VGPU='-'
+      fi
+      n=$((${#column}-${#VCPU}))
+      printf '%s' $VGPU
       printf '%*s' $n
       printf '\t'
     elif [[ $column == 'MEMORY (GiB)' ]]
     then
       MEMORY_MB=$(cat $value | grep MEMORY_MB | cut -d ' ' -f 2)
-      MEMORY_GB=$(($MEMORY_MB/1024))
+      if [ -z $MEMORY_MB ]
+      then
+        MEMORY_GB='-'
+      else
+        MEMORY_GB=$(($MEMORY_MB/1024))
+      fi
       n=$((${#column}-${#MEMORY_GB}))
       printf '%s' $MEMORY_GB
       printf '%*s' $n
@@ -167,7 +187,10 @@ do
     elif [[ $column == 'DISK (GB)' ]]
     then
       DISK_GB=$(cat $value | grep DISK_GB | cut -d ' ' -f 2)
-      n=$((${#column}-${#DISK_GB}))
+      if [ -z $DISK_GB ]
+      then
+        DISK_GB='-'
+      fi     n=$((${#column}-${#DISK_GB}))
       printf '%s' $DISK_GB
       printf '%*s' $n
       printf '\t'
