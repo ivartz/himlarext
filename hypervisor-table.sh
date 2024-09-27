@@ -97,6 +97,7 @@ do
 
   # Prevent parallel execution
   name=$(echo $resource_provider | cut -d ' ' -f 2)
+  name=${name%.*.*.*.*} # Remove the rest of the URI
   pid=${pids[$i]}
   echo "querying $name"
   wait $pid
@@ -121,6 +122,7 @@ resource_strs=(${!usage_reports[*]})
 resource_longest_str=''
 for s in "${resource_strs[@]}"
 do
+  s=${s%.*.*.*.*} # Remove the rest of the URI
   if [ ${#s} -gt ${#resource_longest_str} ]
   then
     resource_longest_str="$s"
@@ -148,7 +150,11 @@ do
   do
     if [[ $column == 'NAME' ]]
     then
-      printf '%s\t' $key
+      name=${key%.*.*.*.*} # Remove the rest of the URI
+      n=$((${#resource_longest_str}-${#name}))
+      printf '%s' $name
+      printf '%*s' $n
+      printf '\t'
     elif [[ $column == 'vCPUs' ]]
     then
       VCPU=$(cat $value | grep VCPU | cut -d ' ' -f 2)
