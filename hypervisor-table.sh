@@ -117,9 +117,17 @@ done
 # Print header
 columns=('NAME' 'AGGREGATES' 'VMs' 'vCPUs' 'MEMORY (GiB)' 'DISK (GB)' 'STATE' 'STATUS')
 resource_strs=(${!usage_reports[*]})
-resource_first_str=${resource_strs[0]}
+# -> Pick the longest resource string in order to align header correctly
+resource_longest_str=''
+for str in "${resource_strs[@]}"
+do
+  if [ ${#str} -gt ${#resource_longest_str} ]
+  then
+    resource_longest_str="$str"
+  fi
+done
 name_str=${columns[0]}
-n=$((${#resource_first_str}-${#name_str}))
+n=$((${#resource_longest_str}-${#name_str}))
 printf "$name_str"
 printf '%*s' $n
 printf '\t'
