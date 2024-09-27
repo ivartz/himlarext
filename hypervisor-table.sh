@@ -190,7 +190,8 @@ do
       if [ -z $DISK_GB ]
       then
         DISK_GB='-'
-      fi     n=$((${#column}-${#DISK_GB}))
+      fi
+      n=$((${#column}-${#DISK_GB}))
       printf '%s' $DISK_GB
       printf '%*s' $n
       printf '\t'
