@@ -91,8 +91,16 @@ for ((i=0;i<$num_resource_providers;++i))
 do
   resource_provider=${resource_providers[$i]}
   uuid=$(echo $resource_provider | cut -d ' ' -f 1)
+
   nohup openstack resource provider usage show $uuid -f value > nohup_$(printf %02d $(($i+1))).stdout 2> /dev/null &
   pids[$i]=$!
+
+  # Prevent parallel execution
+  name=$(echo $resource_provider | cut -d ' ' -f 2)
+  pid=${pids[$i]}
+  echo "querying $name"
+  wait $pid
+
 done
 
 # Wait for queries to finish and collect results
