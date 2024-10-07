@@ -92,7 +92,10 @@ do
   resource_provider=${resource_providers[$i]}
   uuid=$(echo $resource_provider | cut -d ' ' -f 1)
 
-  nohup openstack resource provider usage show $uuid -f value > nohup_$(printf %03d $(($i+1))).stdout 2> /dev/null &
+  #nohup openstack resource provider usage show $uuid -f value > nohup_$(printf %03d $(($i+1))).stdout 2> /dev/null &
+
+  nohup curl -s -H "X-Auth-Token: ${OPENSTACK_HTTP_API_TOKEN}" -X GET http://placement.test01.uhdc.no:8778/placement/resource_providers/$uuid/usages | jq -r '"VCPU \(.usages.VCPU)\nVGPU \(.usages.VGPU)\nMEMORY_MB \(.usages.MEMORY_MB)\nDISK_GB \(.usages.DISK_GB)"' > nohup_$(printf %03d $(($i+1))).stdout 2> /dev/null &
+
   pids[$i]=$!
 
   # Prevent parallel execution
