@@ -22,6 +22,7 @@ Tested on RT SUBMISSION_ID Summary
 6150965 31122499
 6152144 31136133
 6147307 31095286
+6570990 33117323 Share, with large base quota, custom HDD and SSH volume quota, optional contact, other users, large os disk shpc quotas
 and more
 '
 
@@ -86,14 +87,15 @@ do
   then
     clues[sharedProjectBaseQuota]=$answer_text
   # Other sHPC flavors
-  otherShpcResourcesArray=()
   elif [[ $elementId == 5051926 ]]
   then
+    otherShpcResourcesArray=()
     for otherShpcResource in "${answer_texts[@]}"
     do
       otherShpcResourcesArray+=("$otherShpcResource")
     done
-  # (if needed) Additional project sHPC quota TODO: users think that base quota is part of this, and we can end up giving more resources than needed. Change to "Extended HPC Quota?"
+    numOtherShpcResources=${#otherShpcResourcesArray[@]}
+  # Project sHPC quota
   # In this script: Total project quota is the largest of base quota and sHPC quota.
   elif [[ $elementId == 5052831 ]]
   then
@@ -111,7 +113,9 @@ do
   then
     clues[regularVolumeQuota]=$answer_text
   # Optional contact
-  # TODO
+  elif [[ $elementId == 4559701 ]]
+  then
+    clues[optionalContact]=$answer_text
   # Project name
   elif [[ $elementId == 4559713 ]]
   then
@@ -237,7 +241,7 @@ pcargs[rt]=${clues[rt]}
 # institution and region specific options
 if [[ ${clues[educationalInstitution]} == 'University of Oslo (UiO)' ]]
 then
-  # TODO: May need to shorten UiO E-mail to <username>@uio.no. The correct shortened UiO E-mail may be found using bofh on the submitted UiO E-mail in the form.
+  # May need to shorten UiO E-mail to <username>@uio.no. The correct shortened UiO E-mail may be found using bofh on the submitted UiO E-mail in the form.
   # user (create-private)
   pcargs[user]=${clues[respondentEmail]}
   # --region (create)
@@ -246,8 +250,6 @@ then
   pcargs[admin]=${clues[respondentEmail]}
   # -o (choose from 'nrec', 'uio', 'uib', 'uit', 'ntnu', 'nmbu', 'vetinst', 'hvl')
   pcargs[org]=uio
-  # --contact (create) TODO: If Optional contact was provided, use that instead of respondentEmail.
-  pcargs[contact]=${clues[respondentEmail]}
 elif [[ ${clues[educationalInstitution]} == 'University of Bergen (UiB)' ]]
 then
   # user (create-private)
@@ -258,8 +260,6 @@ then
   pcargs[admin]=${clues[respondentEmail]}
   # -o (choose from 'nrec', 'uio', 'uib', 'uit', 'ntnu', 'nmbu', 'vetinst', 'hvl')
   pcargs[org]=uib
-  # --contact (create)
-  pcargs[contact]=${clues[respondentEmail]}
 else
   # user (create-private)
   pcargs[user]=${clues[respondentEmail]}
@@ -269,8 +269,14 @@ else
   pcargs[admin]=${clues[respondentEmail]}
   # -o (choose from 'nrec', 'uio', 'uib', 'uit', 'ntnu', 'nmbu', 'vetinst', 'hvl')
   pcargs[org]=None
-  # --contact (create)
+fi
+
+# --contact (create). If Optional contact was provided, use that instead of respondentEmail.
+if [ -z ${clues[optionalContact]} ]
+then
   pcargs[contact]=${clues[respondentEmail]}
+else
+  pcargs[contact]=${clues[optionalContact]}
 fi
 
 # -t (choose from 'admin', 'demo', 'personal', 'research', 'education', 'course', 'test', 'hpc', 'vgpu') TODO: add the remaining options
@@ -451,6 +457,7 @@ then
     read -p "shpcRamGB: " shpcRamGB
   fi
   # Increase cores and RAM if necessary
+  # Total project quota is the largest of base quota and sHPC quota
   # Cores
   if [ $shpcCores -gt ${pquotas[cores]} ]
   then

@@ -19,7 +19,7 @@ if [ -z $NETTSKJEMA_API_ACCESS_TOKEN ]
 then
   echo 'NETSKJEMA_API_ACCESS_TOKEN environmental variable not present!'
   echo 'You need to source create-access-token.sh'
-  exit 'exiting script'
+  echo 'exiting script'
   exit
 fi
 
