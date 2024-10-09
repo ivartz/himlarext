@@ -462,7 +462,7 @@ then
   if [ $shpcCores -gt ${pquotas[cores]} ]
   then
     pquotas[cores]=$shpcCores
-    cmd="openstack quota set --cores ${pquotas[cores]}"
+    cmd="openstack quota set --cores ${pquotas[cores]} ${pcargs[project]}"
     echo $cmd
   fi
   # RAM
@@ -470,7 +470,7 @@ then
   if [ $ram -gt ${pquotas[ram]} ]
   then
     pquotas[ram]=$ram
-    cmd="openstack quota set --ram ${pquotas[ram]}"
+    cmd="openstack quota set --ram ${pquotas[ram]} ${pcargs[project]}"
     echo $cmd
   fi
 fi
