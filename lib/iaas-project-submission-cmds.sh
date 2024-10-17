@@ -30,6 +30,7 @@ set -e
 
 RT=$1
 SUBMISSION_ID=$2
+element_data=$3
 answer_data=$(curl -s -H "Authorization: Bearer ${NETTSKJEMA_API_ACCESS_TOKEN}" -X GET https://api.nettskjema.no/v3/form/submission/${SUBMISSION_ID})
 
 echo
@@ -52,7 +53,8 @@ do
     answer_text=$(echo $answer | jq '.textAnswer' | tr -d '"')
   elif [ ${#answerOptionIds[*]} -eq 1 ]
   then
-    answer_text=$(echo $answer_elements | jq '.answerOptions[]' | jq "select(.answerOptionId==${answerOptionIds[0]}).text" | tr -d '"')
+    answerOptionId=${answerOptionIds[0]}
+    answer_text=$(echo $answer_elements | jq '.answerOptions[]' | jq "select(.answerOptionId==$answerOptionId).text" | tr -d '"')
   else
     answer_texts=()
     for answerOptionId in ${answerOptionIds[*]}
@@ -65,11 +67,12 @@ do
   then
     clues[projectType]=$answer_text
   # Special resources
-  #elif [[ $elementId == 5052840 ]] || [[ $elementId == 5052847 ]]
   elif [[ $elementId == 5052840 ]]
   then
-    for specialResource in "${answer_texts[@]}"
-    do
+    # Only one special resource
+    specialResource="$answer_text"
+    if [ ! -z "$specialResource" ]
+    then
       if [[ $specialResource == 'Shared HPC' ]]
       then
         clues[shpcResource]=$specialResource
@@ -77,7 +80,21 @@ do
       then
         clues[ssdStorageResource]=$specialResource
       fi
-    done
+    # Multiple special resources
+    elif [ ${#answer_texts[@]} -gt 0  ]
+    then
+      for specialResource in "${answer_texts[@]}"
+      do
+        if [[ $specialResource == 'Shared HPC' ]]
+        then
+          clues[shpcResource]=$specialResource
+        elif [[ $specialResource == 'SSD Storage' ]]
+        then
+          clues[ssdStorageResource]=$specialResource
+        fi
+      done
+    fi
+
   # Private project base quota
   elif [[ $elementId == 4559704 ]]
   then
