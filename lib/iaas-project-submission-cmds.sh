@@ -30,7 +30,6 @@ set -e
 
 RT=$1
 SUBMISSION_ID=$2
-element_data=$3
 answer_data=$(curl -s -H "Authorization: Bearer ${NETTSKJEMA_API_ACCESS_TOKEN}" -X GET https://api.nettskjema.no/v3/form/submission/${SUBMISSION_ID})
 
 echo
@@ -66,6 +65,7 @@ do
   then
     clues[projectType]=$answer_text
   # Special resources
+  #elif [[ $elementId == 5052840 ]] || [[ $elementId == 5052847 ]]
   elif [[ $elementId == 5052840 ]]
   then
     for specialResource in "${answer_texts[@]}"
@@ -423,6 +423,7 @@ if [ ! -z ${clues[ssdVolumeQuota]} ]
   then
   # Parse full openstack SSD quota set cmd
   cmd="openstack quota set --gigabytes $((${clues[regularVolumeQuota]}+${clues[ssdVolumeQuota]})) ${pcargs[project]}" # @caleno verified that this necessary: When setting SSD quota, the regular quota needs to be increased as well with the same amount as the SSD quota.
+  echo $cmd
   cmd="openstack quota set --volume-type mass-storage-ssd --gigabytes ${clues[ssdVolumeQuota]} ${pcargs[project]}"
   echo $cmd
 fi
