@@ -1,5 +1,5 @@
 : '
-bash iaas-project-cmds.sh FROM_SUBMISSION_ID
+bash new-project.sh FROM_SUBMISSION_ID
 
 Process oldest to newest (FIFO)
 
@@ -25,7 +25,7 @@ fi
 
 element_data=$(curl -s -H "Authorization: Bearer ${NETTSKJEMA_API_ACCESS_TOKEN}" -X GET https://api.nettskjema.no/v3/form/289417/elements)
 
-submissionIds=($(bash $(dirname $0)/lib/iaas-project-submission-ids.sh $(($fromSubmissionId-1))))
+submissionIds=($(bash $(dirname $0)/lib/new-project-submission-ids.sh $(($fromSubmissionId-1))))
 
 numSubmissions=${#submissionIds[*]}
 
@@ -38,7 +38,7 @@ do
   #echo "$rt $submissionId"
   if [ ! -z $rt ]
   then
-    bash $(dirname $0)/lib/iaas-project-submission-cmds.sh $rt $submissionId "$element_data"
+    bash $(dirname $0)/lib/new-project-submission-cmds.sh $rt $submissionId "$element_data"
   fi
 done
 echo "Done"

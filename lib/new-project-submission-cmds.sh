@@ -41,11 +41,11 @@ clues[rt]=$RT
 clues[submissionId]=$SUBMISSION_ID
 clues[respondentEmail]=$(echo $answer_data | jq '.submissionMetadata.respondentEmail' | tr -d '"')
 
-numAnswers=$(echo $answer_data | jq '.formAnswers | length')
+numAnswers=$(echo $answer_data | jq '.answers | length')
 for ((i=0; i<$numAnswers; ++i))
 do
-  answer=$(echo $answer_data | jq ".formAnswers[$i]")
-  elementId=$(echo $answer | jq '.elementId') 
+  answer=$(echo $answer_data | jq ".answers[$i]")
+  elementId=$(echo $answer | jq '.elementId')
   answer_elements=$(echo $element_data | jq '.[]' | jq "select(.elementId==$elementId)")
   answerOptionIds=($(echo $answer | jq '.answerOptionIds' | tr -d '[' | tr -d ']' | tr -d ' ' | tr ',' ' '))
   if [ ${#answerOptionIds[*]} -eq 0 ]
